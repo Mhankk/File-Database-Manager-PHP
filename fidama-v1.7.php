@@ -281,9 +281,27 @@ $menu = $_GET['menu'] ?? 'files';
 if ($menu == 'phpinfo') {
     echo "<div class='container mt-4'>";
     echo "<h3>PHP Info</h3>";
+    
+    // Capture the output of phpinfo()
     ob_start();
     phpinfo();
-    echo ob_get_clean();
+    $phpinfo = ob_get_clean();
+    
+    // Extract only the contents of the <body> tag
+    if (preg_match('/<body>(.*?)<\/body>/is', $phpinfo, $matches)) {
+        $phpinfo = $matches[1];
+    }
+    
+    // Remove the default phpinfo styles
+    $phpinfo = preg_replace('#<style.*?>.*?</style>#is', '', $phpinfo);
+    
+    // Add Bootstrap classes to tables for better styling
+    $phpinfo = str_replace('<table ', '<table class="table table-bordered table-striped" ', $phpinfo);
+    
+    // Optionally, adjust headings to match Bootstrap sizes
+    $phpinfo = str_replace(['<h1>', '<h2>'], ['<h1 class="h3">', '<h2 class="h4">'], $phpinfo);
+    
+    echo $phpinfo;
     echo "</div>";
     exit;
 }
