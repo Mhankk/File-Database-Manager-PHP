@@ -306,6 +306,7 @@ if ($menu == 'phpinfo') {
     exit;
 }
 
+
 // ----------------------
 // Command Line View
 // ----------------------
@@ -472,21 +473,50 @@ $fileManager = new FileManager($baseDirectory);
 $action = $_GET['action'] ?? '';
 $message = '';
 
+// Get current directory before processing actions
+$currentDir = $_GET['dir'] ?? '';
+
+// Process file/directory actions
 if ($action === 'mkdir' && isset($_POST['dirname'])) {
-    $message = $fileManager->makeDirectory($_POST['dirname']) ? "Directory created successfully." : "Failed to create directory or it already exists.";
+    $newDir = ($currentDir ? $currentDir . '/' : '') . $_POST['dirname'];
+    $message = $fileManager->makeDirectory($newDir) ? "Directory created successfully." : "Failed to create directory or it already exists.";
+    // Redirect back to the current directory
+    header("Location: ?dir=" . urlencode($currentDir) . "&message=" . urlencode($message));
+    exit;
 } elseif ($action === 'createFile' && isset($_POST['filename'])) {
     $content = $_POST['content'] ?? '';
-    $message = $fileManager->createFile($_POST['filename'], $content) ? "File created successfully." : "Failed to create file or it already exists.";
+    $newFile = ($currentDir ? $currentDir . '/' : '') . $_POST['filename'];
+    $message = $fileManager->createFile($newFile, $content) ? "File created successfully." : "Failed to create file or it already exists.";
+    // Redirect back to the current directory
+    header("Location: ?dir=" . urlencode($currentDir) . "&message=" . urlencode($message));
+    exit;
 } elseif ($action === 'updateFile' && isset($_POST['filename'])) {
     $content = $_POST['content'] ?? '';
     $message = $fileManager->updateFile($_POST['filename'], $content) ? "File updated successfully." : "Failed to update file.";
+    // Redirect back to the current directory
+    header("Location: ?dir=" . urlencode($currentDir) . "&message=" . urlencode($message));
+    exit;
 } elseif ($action === 'delete' && isset($_GET['target'])) {
     $message = $fileManager->deleteFile($_GET['target']) ? "Deleted successfully." : "Failed to delete.";
+    // Redirect back to the current directory
+    header("Location: ?dir=" . urlencode($currentDir) . "&message=" . urlencode($message));
+    exit;
 } elseif ($action === 'rename' && isset($_POST['newName'], $_POST['oldName'])) {
-    $message = $fileManager->renameFile($_POST['oldName'], $_POST['newName']) ? "Renamed successfully." : "Failed to rename.";
+    // Get directory of the old file/folder to maintain proper path for new name
+    $oldDir = dirname($_POST['oldName']);
+    $oldDir = ($oldDir == '.') ? '' : $oldDir;
+    $newName = ($oldDir ? $oldDir . '/' : '') . $_POST['newName'];
+    $message = $fileManager->renameFile($_POST['oldName'], $newName) ? "Renamed successfully." : "Failed to rename.";
+    // Redirect back to the current directory
+    header("Location: ?dir=" . urlencode($currentDir) . "&message=" . urlencode($message));
+    exit;
 }
 
-$currentDir = $_GET['dir'] ?? '';
+// Get message from URL if redirected
+if (isset($_GET['message'])) {
+    $message = $_GET['message'];
+}
+
 $files = $fileManager->listDirectory($currentDir);
 ?>
 
@@ -546,10 +576,10 @@ $serverVars = [
                      if (is_dir($fullPath)) {
                          echo "<a href='?dir=" . urlencode($filePath) . "' class='btn btn-sm btn-info'>Open</a> ";
                      } else {
-                         echo "<a href='?action=edit&target=" . urlencode($filePath) . "' class='btn btn-sm btn-warning'>Edit</a> ";
+                         echo "<a href='?action=edit&target=" . urlencode($filePath) . "&dir=" . urlencode($currentDir) . "' class='btn btn-sm btn-warning'>Edit</a> ";
                      }
-                     echo "<a href='?action=rename&target=" . urlencode($filePath) . "' class='btn btn-sm btn-secondary'>Rename</a> ";
-                     echo "<a href='?action=delete&target=" . urlencode($filePath) . "' class='btn btn-sm btn-danger' onclick='return confirm(\"Are you sure?\");'>Delete</a>";
+                     echo "<a href='?action=rename&target=" . urlencode($filePath) . "&dir=" . urlencode($currentDir) . "' class='btn btn-sm btn-secondary'>Rename</a> ";
+                     echo "<a href='?action=delete&target=" . urlencode($filePath) . "&dir=" . urlencode($currentDir) . "' class='btn btn-sm btn-danger' onclick='return confirm(\"Are you sure?\");'>Delete</a>";
                      echo "</td>";
                      echo "</tr>";
                  }
@@ -563,7 +593,7 @@ $serverVars = [
     <div class="row mt-4">
          <div class="col-md-6">
              <h4>Create Directory</h4>
-             <form method="post" action="?action=mkdir<?= $currentDir ? "&dir=" . urlencode($currentDir) : ""; ?>">
+             <form method="post" action="?action=mkdir&dir=<?= urlencode($currentDir); ?>">
                  <div class="mb-3">
                      <label class="form-label">Directory Name:</label>
                      <input type="text" name="dirname" class="form-control" required>
@@ -573,7 +603,7 @@ $serverVars = [
          </div>
          <div class="col-md-6">
              <h4>Create File</h4>
-             <form method="post" action="?action=createFile<?= $currentDir ? "&dir=" . urlencode($currentDir) : ""; ?>">
+             <form method="post" action="?action=createFile&dir=<?= urlencode($currentDir); ?>">
                  <div class="mb-3">
                      <label class="form-label">File Name:</label>
                      <input type="text" name="filename" class="form-control" required>
