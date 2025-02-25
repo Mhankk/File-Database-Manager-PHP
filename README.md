@@ -29,6 +29,14 @@ This PHP script provides a lightweight backend management interface with authent
 - Navigation menu to switch between file and database management.
 - Displays login/logout forms dynamically based on session state.
 
+### 5. New Features in v1.7
+- Improved file upload functionality with validation.
+- Added support for editing large files with better performance.
+- Enhanced SQL query execution with result pagination.
+- Implemented basic error logging for debugging purposes.
+- Optimized database connections for better performance.
+- Fixed various UI inconsistencies and improved responsiveness.
+
 ## Installation
 ### Requirements
 - PHP 7.4+
@@ -61,6 +69,7 @@ This project is open-source under the MIT License.
 - Add role-based access control.
 - Improve security measures such as file access restrictions.
 - Enhance UI with AJAX for a smoother experience.
+- Implement a more robust logging system.
 
 ---
 For feedback or contributions, feel free to open an issue or submit a pull request. 🚀
